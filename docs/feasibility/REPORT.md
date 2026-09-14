@@ -191,7 +191,7 @@ Confirmed absent from all seven source documents by exhaustive grep — zero hit
 | **REST vs GraphQL** | See decision 1. |
 | **Media bucket + CDN** | Proposed and proven: private bucket, CloudFront OAC, `CDN_BASE_URL` = distribution domain. |
 | **Drafts / versioning / preview** | Cheap to enable, immediately useful, and drafts do not leak to anonymous callers. **Recommend in scope.** Each opted-in collection doubles its tables. |
-| **Scheduled publishing** | Not built. Modellable as a date-window field; no Payload feature needed. |
+| **Scheduled publishing** | **Correction (2026-09-14):** this POC's original finding — "Not built" — was wrong. Payload's core `schedulePublish` job (`versions.drafts.schedulePublish: true`, already wired on `Pages`/`ProductContent`/`PageTemplates`/`ReusableContent`) supports two job types, `publish` and `unpublish` (confirmed in `payload/dist/versions/schedule/job.js`), and both directions are confirmed working live, not just publish-only. See `docs/15-platform-capabilities.md` §5. |
 | **CMS roles** | The SoW's six admin roles are modelled as a field. **Mapping them to per-collection permissions is undone** and needs its own pass. |
 | **Localisation** | Not built, not needed — single market. |
 

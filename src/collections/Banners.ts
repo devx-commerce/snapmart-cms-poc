@@ -32,11 +32,20 @@ const SURFACE_OPTIONS = [
  * F-056 (final SoW p.135)'s "Multiple placements" language is exactly this: one banner, more
  * than one `placements` row.
  *
- * Scheduling is two plain date fields checked at read time (`startDate`/`endDate`), per the
- * POC's own finding (docs/feasibility/REPORT.md: "Scheduled publishing: Not built.
- * Modellable as a date-window field; no Payload feature needed") — not Payload's
- * `schedulePublish` on `versions.drafts`, which only schedules when a draft goes live, not
- * when it comes back down again.
+ * Scheduling is two plain date fields checked at read time (`startDate`/`endDate`), not
+ * Payload's `schedulePublish` on `versions.drafts`.
+ *
+ * Correction (2026-09-14): the reasoning this was originally built on was wrong. The POC's
+ * feasibility report claimed `schedulePublish` "only schedules when a draft goes live, not
+ * when it comes back down again" — Payload's core scheduling job actually supports both a
+ * `publish` and an `unpublish` type (`payload/dist/versions/schedule/job.js`), confirmed
+ * working in both directions live, not just publish-only (docs/15-platform-capabilities.md
+ * §5). Plain date fields are kept here regardless, since a banner's start/end window is
+ * read-time data the storefront queries directly (`startDate <= now <= endDate`), not an
+ * admin-only draft/published state — `schedulePublish` flips `_status`, which the public API
+ * only exposes as published-or-not, not as "which window is currently active." Whether
+ * `schedulePublish` could still replace this for the common single-window case is an open
+ * question, not decided here.
  *
  * See docs/11-banner-specifications.md and docs/13-sale-banners-and-countdown-model.md in
  * the project root for the requirement/solution writeup this implements.
