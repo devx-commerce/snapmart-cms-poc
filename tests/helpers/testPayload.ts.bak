@@ -1,0 +1,24 @@
+import { getPayload, type Payload } from 'payload'
+import config from '../../src/payload.config.js'
+
+let cached: Promise<Payload> | undefined
+
+/**
+ * A single, memoized Payload instance shared by every integration test file.
+ *
+ * Payload's local-dev schema sync (`push`) recreates a handful of constraints on every
+ * `getPayload()` call. Two spec files each calling `getPayload()` independently race that
+ * recreation against each other and fail with "constraint ... does not exist" -- not a real
+ * schema problem, just two pushes stepping on each other's work. Memoizing here, combined
+ * with `isolate: false` in vitest.config.mts (so this module's cache is actually shared
+ * across spec files), means the whole test run performs the push exactly once.
+ */
+export function getTestPayload(): Promise<Payload> {
+  if (!cached) {
+    cached = (async () => {
+      const payloadConfig = await config
+      return getPayload({ config: payloadConfig })
+    })()
+  }
+  return cached
+}

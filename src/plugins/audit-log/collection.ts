@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated } from '../../access'
+import { hasRole } from '../../access'
 
 /**
  * Who changed what, when.
@@ -36,9 +36,10 @@ export const AuditLog: CollectionConfig = {
       'Immutable record of every content change: who, what, when, and the before/after of each field. Entries cannot be edited or deleted.',
   },
   access: {
-    // Tighten this to specific roles before production -- an audit trail readable by
-    // everyone is an information-disclosure surface of its own.
-    read: authenticated,
+    // IT/Engineering (full access) and Leadership (read-only oversight, final SoW p.152)
+    // only -- an audit trail readable by every admin role is an information-disclosure
+    // surface of its own.
+    read: hasRole('engineering', 'leadership'),
     // No API or panel path to write, amend or remove an entry. The hook writes with
     // overrideAccess: true, which bypasses these deliberately and is the only way in.
     create: () => false,

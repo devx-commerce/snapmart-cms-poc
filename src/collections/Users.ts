@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated } from '../access'
+import { authenticated, hasRoleField } from '../access'
 
 /**
  * CMS users. The `role` options are the six admin roles the SoW names
@@ -8,8 +8,8 @@ import { authenticated } from '../access'
  * Finance, IT/Engineering, Leadership -- RBAC-governed".
  *
  * The SoW never says whether those are Medusa roles, Payload roles, or both, and never maps
- * them to collection permissions. Modelled here as a field so the question is visible; the
- * POC does not attempt the full RBAC matrix.
+ * them to collection permissions. See docs/15-platform-capabilities.md §4 and
+ * src/access/index.ts for the Payload-side policies built against this field.
  */
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -31,6 +31,9 @@ export const Users: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'contentManager',
+      // Read from the JWT rather than re-fetched per request -- every access check in
+      // src/access/index.ts that branches on role depends on this.
+      saveToJWT: true,
       options: [
         { label: 'Content Manager', value: 'contentManager' },
         { label: 'CS Agent', value: 'csAgent' },
@@ -39,9 +42,13 @@ export const Users: CollectionConfig = {
         { label: 'IT / Engineering', value: 'engineering' },
         { label: 'Leadership', value: 'leadership' },
       ],
+      access: {
+        // Only IT/Engineering can change anyone's role, including their own -- otherwise
+        // any role could self-promote by editing their own user document.
+        update: hasRoleField('engineering'),
+      },
       admin: {
-        description:
-          'The six admin roles named in the SoW. Not yet wired to per-collection permissions.',
+        description: 'The six admin roles named in the SoW. Only IT/Engineering can change this.',
       },
     },
   ],

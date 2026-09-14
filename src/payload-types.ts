@@ -70,6 +70,10 @@ export interface Config {
     richText: RichTextBlock;
     mediaBlock: MediaBlockType;
     cta: CtaBlock;
+    productRail: ProductRailBlock;
+    categoryGrid: CategoryGridBlock;
+    landersExperience: LandersExperienceBlock;
+    cartBestsellerRail: CartBestsellerRailBlock;
     reusableContent: ReusableContentBlock;
     documentSlot: DocumentSlotBlock;
   };
@@ -78,6 +82,8 @@ export interface Config {
     'product-content': ProductContent;
     'reusable-content': ReusableContent;
     'page-templates': PageTemplate;
+    banners: Banner;
+    sales: Sale;
     media: Media;
     users: User;
     redirects: Redirect;
@@ -94,6 +100,8 @@ export interface Config {
     'product-content': ProductContentSelect<false> | ProductContentSelect<true>;
     'reusable-content': ReusableContentSelect<false> | ReusableContentSelect<true>;
     'page-templates': PageTemplatesSelect<false> | PageTemplatesSelect<true>;
+    banners: BannersSelect<false> | BannersSelect<true>;
+    sales: SalesSelect<false> | SalesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
@@ -108,8 +116,20 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    header: Header;
+    'secondary-header': SecondaryHeader;
+    footer: Footer;
+    'bottom-nav': BottomNav;
+    'right-rail': RightRail;
+  };
+  globalsSelect: {
+    header: HeaderSelect<false> | HeaderSelect<true>;
+    'secondary-header': SecondaryHeaderSelect<false> | SecondaryHeaderSelect<true>;
+    footer: FooterSelect<false> | FooterSelect<true>;
+    'bottom-nav': BottomNavSelect<false> | BottomNavSelect<true>;
+    'right-rail': RightRailSelect<false> | RightRailSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -255,6 +275,118 @@ export interface CtaBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProductRailBlock".
+ */
+export interface ProductRailBlock {
+  /**
+   * e.g. "Grand Grocery Sale", "On Sale".
+   */
+  title: string;
+  /**
+   * Products themselves are Medusa-driven — this only names the rail and which Medusa collection/category it pulls from.
+   */
+  medusaCollectionId: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'productRail';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CategoryGridBlock".
+ */
+export interface CategoryGridBlock {
+  /**
+   * docs/10 §5.4 Category/Department Highlight Grid.
+   */
+  tiles?:
+    | {
+        /**
+         * Required.
+         */
+        image?: {
+          desktopImage?: (number | null) | Media;
+          mobileImage?: (number | null) | Media;
+          /**
+           * Accessibility text for the image.
+           */
+          alt?: string | null;
+        };
+        tagline?: string | null;
+        slug: string;
+        medusaTargetId: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'categoryGrid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LandersExperienceBlock".
+ */
+export interface LandersExperienceBlock {
+  /**
+   * docs/10 §5.5 "Story Card" — image, title, video link.
+   */
+  items?:
+    | {
+        /**
+         * Required.
+         */
+        image?: {
+          desktopImage?: (number | null) | Media;
+          mobileImage?: (number | null) | Media;
+          /**
+           * Accessibility text for the image.
+           */
+          alt?: string | null;
+        };
+        title: string;
+        videoLink: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'landersExperience';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CartBestsellerRailBlock".
+ */
+export interface CartBestsellerRailBlock {
+  /**
+   * Which SoW rail this is — ranking is computed separately per scope.
+   */
+  scope: '1p' | '3p';
+  /**
+   * e.g. "Bestsellers".
+   */
+  title: string;
+  /**
+   * Trailing order-frequency window the Medusa worker ranks over.
+   */
+  computationWindowDays?: number | null;
+  /**
+   * How often the worker recomputes the ranking.
+   */
+  updateFrequencyDays?: number | null;
+  /**
+   * Manually pin specific SKUs ahead of the computed ranking, regardless of computed rank (F-100/F-101). Order here is pin order.
+   */
+  pinnedProducts?:
+    | {
+        medusaProductId: string;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cartBestsellerRail';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "ReusableContentBlock".
  */
 export interface ReusableContentBlock {
@@ -307,7 +439,19 @@ export interface Page {
    * Copied into the layout below when the page is first created.
    */
   contentTemplate?: (number | null) | PageTemplate;
-  layout?: (HeroBlock | RichTextBlock | MediaBlockType | CtaBlock | ReusableContentBlock)[] | null;
+  layout?:
+    | (
+        | HeroBlock
+        | RichTextBlock
+        | MediaBlockType
+        | CtaBlock
+        | ReusableContentBlock
+        | ProductRailBlock
+        | CategoryGridBlock
+        | LandersExperienceBlock
+        | CartBestsellerRailBlock
+      )[]
+    | null;
   meta?: {
     title?: string | null;
     description?: string | null;
@@ -395,13 +539,99 @@ export interface ProductContent {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Hero Carousel, Standalone Campaign Banner, PLP, Sticky Sale Bar — where a banner shows is set in Placements below. The Right Rail is assigned separately (Globals → Right Rail); the Footer's app-download banner is a field on Globals → Footer, not a Banners document at all.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "banners".
+ */
+export interface Banner {
+  id: number;
+  /**
+   * Editor-facing label. Not shown to customers.
+   */
+  internalTitle: string;
+  /**
+   * Required.
+   */
+  creative?: {
+    mediaType?: ('image' | 'video') | null;
+    desktopImage?: (number | null) | Media;
+    mobileImage?: (number | null) | Media;
+    /**
+     * Accessibility text for the image.
+     */
+    alt?: string | null;
+    desktopVideo?: (number | null) | Media;
+    mobileVideo?: (number | null) | Media;
+    controls?: boolean | null;
+    autoplay?: boolean | null;
+    desktopPoster?: (number | null) | Media;
+    mobilePoster?: (number | null) | Media;
+  };
+  link?: {
+    url?: string | null;
+    target?: ('same' | 'new') | null;
+  };
+  /**
+   * Leave blank to show as soon as published.
+   */
+  startDate?: string | null;
+  /**
+   * Leave blank for no end date.
+   */
+  endDate?: string | null;
+  /**
+   * Optional — link a Sale so this banner can show a live countdown to its end date.
+   */
+  sale?: (number | null) | Sale;
+  /**
+   * Render a live countdown to the linked Sale's end date on this banner.
+   */
+  showCountdown?: boolean | null;
+  /**
+   * Where this banner appears. F-056's "Multiple placements" — one banner can occupy more than one surface at once.
+   */
+  placements: {
+    surface: 'home-hero' | 'home-standalone' | 'plp' | 'sticky-bar';
+    /**
+     * The Medusa category, collection, or subcategory ID this banner is scoped to. Leave blank to show on every PLP — open question, docs/11-banner-specifications.md §7.
+     */
+    medusaCategoryId?: string | null;
+    id?: string | null;
+  }[];
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * A sale/campaign window. Banners link here for a synced countdown.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sales".
+ */
+export interface Sale {
+  id: number;
+  /**
+   * e.g. "9 FOR ₱9 — Sept 2026". Not shown to customers.
+   */
+  internalTitle: string;
+  startDate: string;
+  /**
+   * Every linked banner's countdown reads this value.
+   */
+  endDate: string;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
   /**
-   * The six admin roles named in the SoW. Not yet wired to per-collection permissions.
+   * The six admin roles named in the SoW. Only IT/Engineering can change this.
    */
   role: 'contentManager' | 'csAgent' | 'operations' | 'finance' | 'engineering' | 'leadership';
   updatedAt: string;
@@ -639,6 +869,14 @@ export interface PayloadLockedDocument {
         value: number | PageTemplate;
       } | null)
     | ({
+        relationTo: 'banners';
+        value: number | Banner;
+      } | null)
+    | ({
+        relationTo: 'sales';
+        value: number | Sale;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -761,6 +999,59 @@ export interface PageTemplatesSelect<T extends boolean = true> {
   appliesTo?: T;
   strategy?: T;
   layout?: T | {};
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "banners_select".
+ */
+export interface BannersSelect<T extends boolean = true> {
+  internalTitle?: T;
+  creative?:
+    | T
+    | {
+        mediaType?: T;
+        desktopImage?: T;
+        mobileImage?: T;
+        alt?: T;
+        desktopVideo?: T;
+        mobileVideo?: T;
+        controls?: T;
+        autoplay?: T;
+        desktopPoster?: T;
+        mobilePoster?: T;
+      };
+  link?:
+    | T
+    | {
+        url?: T;
+        target?: T;
+      };
+  startDate?: T;
+  endDate?: T;
+  sale?: T;
+  showCountdown?: T;
+  placements?:
+    | T
+    | {
+        surface?: T;
+        medusaCategoryId?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "sales_select".
+ */
+export interface SalesSelect<T extends boolean = true> {
+  internalTitle?: T;
+  startDate?: T;
+  endDate?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -947,6 +1238,269 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * Site-wide top navigation.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header".
+ */
+export interface Header {
+  id: number;
+  logo: number | Media;
+  searchPlaceholder?: string | null;
+  membershipCta: {
+    label?: string | null;
+    url: string;
+  };
+  /**
+   * e.g. Help, Track Orders.
+   */
+  utilityLinks?:
+    | {
+        label: string;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * The utility link row below the main header nav.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "secondary-header".
+ */
+export interface SecondaryHeader {
+  id: number;
+  links: {
+    label: string;
+    url: string;
+    id?: string | null;
+  }[];
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Site-wide footer, including the "Download the App" banner directly above the link columns.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer".
+ */
+export interface Footer {
+  id: number;
+  appDownloadBanner?: {
+    backgroundImage?: (number | null) | Media;
+    appPreviewImage?: (number | null) | Media;
+    logo?: (number | null) | Media;
+    heading?: string | null;
+    subheading?: string | null;
+    qrCode?: (number | null) | Media;
+    appStoreUrl?: string | null;
+    googlePlayUrl?: string | null;
+  };
+  columns?:
+    | {
+        heading: string;
+        links?:
+          | {
+              label: string;
+              /**
+               * Leave blank to render this row as plain informational text rather than a link — e.g. "Store Business Hours," "Manila Stores: 9am - 9pm" in the Contact Us column.
+               */
+              url?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  socialLinks?:
+    | {
+        platform?: ('Facebook' | 'Instagram' | 'YouTube' | 'TikTok') | null;
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * e.g. Visa, Mastercard, Amex, JCB, GCash, Maya, BDO, Cash on Delivery.
+   */
+  paymentMethods?:
+    | {
+        label: string;
+        icon: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * e.g. SnapMart, Grab, Lalamove, AllEasy.
+   */
+  deliveryServices?:
+    | {
+        label: string;
+        icon: number | Media;
+        id?: string | null;
+      }[]
+    | null;
+  copyrightText?: string | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Mobile-only bottom tab bar.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bottom-nav".
+ */
+export interface BottomNav {
+  id: number;
+  items: {
+    label: string;
+    icon?: (number | null) | Media;
+    url: string;
+    id?: string | null;
+  }[];
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Desktop-only sidebar banners, shown on Home and PLP alike. Order here is display order, top to bottom.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "right-rail".
+ */
+export interface RightRail {
+  id: number;
+  /**
+   * Drag to reorder.
+   */
+  banners?: (number | Banner)[] | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "header_select".
+ */
+export interface HeaderSelect<T extends boolean = true> {
+  logo?: T;
+  searchPlaceholder?: T;
+  membershipCta?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+      };
+  utilityLinks?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "secondary-header_select".
+ */
+export interface SecondaryHeaderSelect<T extends boolean = true> {
+  links?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "footer_select".
+ */
+export interface FooterSelect<T extends boolean = true> {
+  appDownloadBanner?:
+    | T
+    | {
+        backgroundImage?: T;
+        appPreviewImage?: T;
+        logo?: T;
+        heading?: T;
+        subheading?: T;
+        qrCode?: T;
+        appStoreUrl?: T;
+        googlePlayUrl?: T;
+      };
+  columns?:
+    | T
+    | {
+        heading?: T;
+        links?:
+          | T
+          | {
+              label?: T;
+              url?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  socialLinks?:
+    | T
+    | {
+        platform?: T;
+        url?: T;
+        id?: T;
+      };
+  paymentMethods?:
+    | T
+    | {
+        label?: T;
+        icon?: T;
+        id?: T;
+      };
+  deliveryServices?:
+    | T
+    | {
+        label?: T;
+        icon?: T;
+        id?: T;
+      };
+  copyrightText?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "bottom-nav_select".
+ */
+export interface BottomNavSelect<T extends boolean = true> {
+  items?:
+    | T
+    | {
+        label?: T;
+        icon?: T;
+        url?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "right-rail_select".
+ */
+export interface RightRailSelect<T extends boolean = true> {
+  banners?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

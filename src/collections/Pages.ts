@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import { anyone, authenticated, authenticatedOrPublished } from '../access'
-import { layoutBlockSlugs } from '../blocks'
+import { pagesBlockSlugs } from '../blocks'
 import { copyTemplateOnCreate } from '../hooks/applyTemplate'
 import { notifyCacheInvalidation } from '../hooks/notifyCacheInvalidation'
 
@@ -61,7 +61,7 @@ export const Pages: CollectionConfig = {
       label: 'Page layout',
       // v3 API: reference shared blocks by slug; `blocks` must be present and empty.
       // v4 removes `blockReferences` and takes these slugs in `blocks` directly.
-      blockReferences: [...layoutBlockSlugs],
+      blockReferences: [...pagesBlockSlugs],
       blocks: [],
     },
   ],
